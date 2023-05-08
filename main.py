@@ -4,30 +4,30 @@ from typing import List, Optional
 
 app = FastAPI()
 
-class Persona (BaseModel):
+class Producto (BaseModel):
     id: int
     nombre: str
-    edad: int
-    ciudad: Optional[str] = None
+    cantidad: int
+    detalle: Optional[str] = None
 
-personaList = []
+productoList = []
 
-@app.post("/personas", response_model=Persona)
-def crear_persona(person: Persona):
-    personaList.append(person)
-    return person
+@app.post("/productos", response_model=Producto)
+def crear_producto(product: Producto):
+    productoList.append(product)
+    return product
 
-@app.get("/personas", response_model=List[Persona])
-def get_personas():
-    return personaList
+@app.get("/productos", response_model=List[Producto])
+def get_productos():
+    return productoList
 
-@app.get("/personas/{persona_id}", response_model=Persona)
-def obtener_persona (persona_id: int):
-    for persona in personaList:
-        if persona.id == persona_id:
-            return persona
-    raise HTTPException(status_code=404, detail="Persona no encontrada")
+@app.get("/productos/{producto_id}", response_model=Producto)
+def obtener_producto (producto_id: int):
+    for producto in productoList:
+        if producto.id == producto_id:
+            return producto
+    raise HTTPException(status_code=404, detail="Producto no encontrada")
 
 @app.get("/")
 def read_root():
-    return {"Hello": "Interoperabilidad 2"}
+    return {"Bienvenido": "Usuario"}
