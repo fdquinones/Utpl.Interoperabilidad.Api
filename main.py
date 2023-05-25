@@ -28,6 +28,15 @@ def obtener_persona (persona_id: int):
             return persona
     raise HTTPException(status_code=404, detail="Persona no encontrada")
 
+@app.delete("/personas/{persona_id}")
+def eliminar_persona (persona_id: int):
+    persona = next((p for p in personaList if p.id == persona_id), None)
+    if persona:
+        personaList.remove(persona)
+        return {"mensaje": "Persona eliminada exitosamente"}
+    else:
+        raise HTTPException(status_code=404, detail="Persona no encontrada")
+
 @app.get("/")
 def read_root():
     return {"Hello": "Interoperabilidad 8"}
