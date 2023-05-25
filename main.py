@@ -30,4 +30,4 @@ def obtener_persona (persona_id: int):
 
 @app.get("/")
 def read_root():
-    return {"Hello": "Interoperabilidad 7"}
+    return {"Hello": "Interoperabilidad 8"}
