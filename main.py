@@ -32,7 +32,18 @@ def obtener_producto (producto_id: int):
 
 def eliminar_producto (producto_id: int):
 
-    producto_eliminado = productoList.pop(producto_id)
+    producto = next((p for p in productoList if p.id == producto_id), None)
+
+    if producto:
+
+        productoList.remove(producto)
+
+        return {"mensaje": "Producto eliminado exitosamente"}
+
+    else:
+
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
 
 @app.get("/")
 def read_root():
