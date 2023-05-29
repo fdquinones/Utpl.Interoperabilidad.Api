@@ -30,4 +30,4 @@ def obtener_producto (producto_id: int):
 
 @app.get("/")
 def read_root():
-    return {"Bienvenido": "Usuario/Nombre"}
+    return {"Bienvenido": "Usuario/NombreApellido1"}
