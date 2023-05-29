@@ -28,6 +28,12 @@ def obtener_producto (producto_id: int):
             return producto
     raise HTTPException(status_code=404, detail="Producto no encontrada")
 
+@app.delete("/productos/{producto_id}")
+
+def eliminar_producto (producto_id: int):
+
+    producto_eliminado = productoList.pop(producto_id)
+
 @app.get("/")
 def read_root():
     return {"Bienvenido": "Usuario/NombreApellido1"}
