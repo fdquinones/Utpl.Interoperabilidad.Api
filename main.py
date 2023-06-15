@@ -14,7 +14,9 @@ Utpl tnteroperabilidad API ayuda a describir las capacidades de un directorio. ğ
 
 ## Personas
 
-You can **read items**.
+Tu puedes crear una persona.
+Tu puedes listar personas.
+
 
 ## Artistas
 
