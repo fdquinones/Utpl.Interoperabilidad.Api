@@ -62,18 +62,18 @@ def crear_persona(person: Persona):
     personaList.append(person)
     return person
 
-@app.get("/personas", response_model=List[Persona])
+@app.get("/personas", response_model=List[Persona], tags=["personas"])
 def get_personas():
     return personaList
 
-@app.get("/personas/{persona_id}", response_model=Persona)
+@app.get("/personas/{persona_id}", response_model=Persona , tags=["personas"])
 def obtener_persona (persona_id: int):
     for persona in personaList:
         if persona.id == persona_id:
             return persona
     raise HTTPException(status_code=404, detail="Persona no encontrada")
 
-@app.delete("/personas/{persona_id}")
+@app.delete("/personas/{persona_id}", tags=["personas"])
 def eliminar_persona (persona_id: int):
     persona = next((p for p in personaList if p.id == persona_id), None)
     if persona:
