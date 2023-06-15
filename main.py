@@ -25,6 +25,13 @@ You will be able to:
 * **Crear artista** (_not implemented_).
 """
 
+tags_metadata = [
+    {
+        "name":"personas",
+        "description": "Permite realizar un crud completo de una persona (listar)"
+    }
+]
+
 app = FastAPI(
     title="Utpl Interoperabilidad APP",
     description= description,
@@ -38,7 +45,8 @@ app = FastAPI(
     license_info={
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
-    }
+    },
+    openapi_tags = tags_metadata
 )
 
 class Persona (BaseModel):
@@ -49,7 +57,7 @@ class Persona (BaseModel):
 
 personaList = []
 
-@app.post("/personas", response_model=Persona)
+@app.post("/personas", response_model=Persona, tags = ["personas"])
 def crear_persona(person: Persona):
     personaList.append(person)
     return person
