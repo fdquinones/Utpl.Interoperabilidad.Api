@@ -4,6 +4,13 @@ from typing import List, Optional
 
 import spotipy
 
+#Importar libreria de mongodb
+import pymongo
+
+client = pymongo.MongoClient("mongodb+srv://utplinteroperabilidad:0b1Fd3PFZZInSuZK@cluster0.susnphb.mongodb.net/?retryWrites=true&w=majority")
+database = client["directorio"]
+coleccion = database["persona"]
+
 sp = spotipy.Spotify(auth_manager=spotipy.oauth2.SpotifyClientCredentials(
     client_id='c8519595485648c3949369793de3e366',
     client_secret='d266e54ea24346a7b278445be87cd400'
@@ -60,6 +67,7 @@ personaList = []
 @app.post("/personas", response_model=Persona, tags = ["personas"])
 def crear_persona(person: Persona):
     personaList.append(person)
+    coleccion.insert_one(person)
     return person
 
 @app.get("/personas", response_model=List[Persona], tags=["personas"])
