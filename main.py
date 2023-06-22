@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 import spotipy
+import uuid
 
 #Importar libreria de mongodb
 import pymongo
@@ -36,6 +37,10 @@ tags_metadata = [
     {
         "name":"personas",
         "description": "Permite realizar un crud completo de una persona (listar)"
+    },
+    {
+        "name":"canciones",
+        "description": "Permite realizar un crud completo sobre canciones"
     }
 ]
 
@@ -56,46 +61,55 @@ app = FastAPI(
     openapi_tags = tags_metadata
 )
 
-class Persona (BaseModel):
-    id: int
+class PersonaRepositorio (BaseModel):
+    id: str
     nombre: str
     edad: int
     ciudad: Optional[str] = None
 
+class PersonaEntrada (BaseModel):
+    nombre: str
+    edad: int
+    ciudad: Optional[str] = None
+
+
 personaList = []
 
-@app.post("/personas", response_model=Persona, tags = ["personas"])
-def crear_persona(person: Persona):
-    personaList.append(person)
-    coleccion.insert_one(person)
-    return person
+@app.post("/personas", response_model=PersonaRepositorio, tags = ["personas"])
+async def crear_persona(person: PersonaEntrada):
+    itemPersona = PersonaRepositorio(id=str(uuid.uuid4()), nombre= person.nombre, ciudad = person.ciudad, edad = person.edad)
+    result = coleccion.insert_one(itemPersona.dict())
+    return itemPersona
 
-@app.get("/personas", response_model=List[Persona], tags=["personas"])
+@app.get("/personas", response_model=List[PersonaRepositorio], tags=["personas"])
 def get_personas():
-    return personaList
+    items = list(coleccion.find())
+    print (items)
+    return items
 
-@app.get("/personas/{persona_id}", response_model=Persona , tags=["personas"])
-def obtener_persona (persona_id: int):
-    for persona in personaList:
-        if persona.id == persona_id:
-            return persona
-    raise HTTPException(status_code=404, detail="Persona no encontrada")
+@app.get("/personas/{persona_id}", response_model=PersonaRepositorio , tags=["personas"])
+def obtener_persona (persona_id: str):
+    item = coleccion.find_one({"id": persona_id})
+    if item:
+        return item
+    else:
+        raise HTTPException(status_code=404, detail="Persona no encontrada")
+    
 
 @app.delete("/personas/{persona_id}", tags=["personas"])
-def eliminar_persona (persona_id: int):
-    persona = next((p for p in personaList if p.id == persona_id), None)
-    if persona:
-        personaList.remove(persona)
+def eliminar_persona (persona_id: str):    
+    result = coleccion.delete_one({"id": persona_id})
+    if result.deleted_count == 1:
         return {"mensaje": "Persona eliminada exitosamente"}
     else:
         raise HTTPException(status_code=404, detail="Persona no encontrada")
 
-@app.get("/pista/{pista_id}")
+@app.get("/pista/{pista_id}", tags = ["canciones"])
 async def obtener_pista(pista_id: str):
     track = sp.track(pista_id)
     return track
     
-@app.get("/artistas/{artista_id}")
+@app.get("/artistas/{artista_id}", tags = ["canciones"])
 async def get_artista(artista_id: str):
     artista = sp.artist(artista_id)
     return artista
