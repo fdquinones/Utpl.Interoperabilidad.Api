@@ -89,11 +89,12 @@ def get_personas():
     return items
 
 @app.get("/personas/{persona_id}", response_model=PersonaRepositorio , tags=["personas"])
-def obtener_persona (persona_id: int):
-    for persona in personaList:
-        if persona.id == persona_id:
-            return persona
-    raise HTTPException(status_code=404, detail="Persona no encontrada")
+def obtener_persona (persona_id: str):
+    item = coleccion.find_one({"id": persona_id})
+    if item:
+        return item
+    else:
+        raise HTTPException(status_code=404, detail="Persona no encontrada")
 
 @app.delete("/personas/{persona_id}", tags=["personas"])
 def eliminar_persona (persona_id: str):
