@@ -1,16 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-
-import spotipy
 import uuid
 
-#Importar libreria de mongodb
+#seccion mongo importar libreria
 import pymongo
 
-client = pymongo.MongoClient("mongodb+srv://utplinteroperabilidad:0b1Fd3PFZZInSuZK@cluster0.susnphb.mongodb.net/?retryWrites=true&w=majority")
-database = client["directorio"]
-coleccion = database["persona"]
+import spotipy
 
 sp = spotipy.Spotify(auth_manager=spotipy.oauth2.SpotifyClientCredentials(
     client_id='c8519595485648c3949369793de3e366',
@@ -37,15 +33,11 @@ tags_metadata = [
     {
         "name":"personas",
         "description": "Permite realizar un crud completo de una persona (listar)"
-    },
-    {
-        "name":"canciones",
-        "description": "Permite realizar un crud completo sobre canciones"
     }
 ]
 
 app = FastAPI(
-    title="Utpl Interoperabilidad APP",
+    title="Utpl Interoperabilidad APP 2",
     description= description,
     version="0.0.1",
     terms_of_service="http://example.com/terms/",
@@ -61,6 +53,11 @@ app = FastAPI(
     openapi_tags = tags_metadata
 )
 
+#configuracion de mongo
+cliente = pymongo.MongoClient("mongodb+srv://utplinteroperabilidad:0b1Fd3PFZZInSuZK@cluster0.susnphb.mongodb.net/?retryWrites=true&w=majority")
+database = cliente["directorio"]
+coleccion = database["persona"]
+
 class PersonaRepositorio (BaseModel):
     id: str
     nombre: str
@@ -68,17 +65,17 @@ class PersonaRepositorio (BaseModel):
     ciudad: Optional[str] = None
 
 class PersonaEntrada (BaseModel):
-    nombre: str
-    edad: int
+    nombre:str
+    edad:int
     ciudad: Optional[str] = None
 
 
 personaList = []
 
 @app.post("/personas", response_model=PersonaRepositorio, tags = ["personas"])
-async def crear_persona(person: PersonaEntrada):
-    itemPersona = PersonaRepositorio(id=str(uuid.uuid4()), nombre= person.nombre, ciudad = person.ciudad, edad = person.edad)
-    result = coleccion.insert_one(itemPersona.dict())
+async def crear_persona(personE: PersonaEntrada):
+    itemPersona = PersonaRepositorio (id= str(uuid.uuid4()), nombre = personE.nombre, edad = personE.edad, ciudad = personE.ciudad)
+    resultadoDB =  coleccion.insert_one(itemPersona.dict())
     return itemPersona
 
 @app.get("/personas", response_model=List[PersonaRepositorio], tags=["personas"])
@@ -88,28 +85,27 @@ def get_personas():
     return items
 
 @app.get("/personas/{persona_id}", response_model=PersonaRepositorio , tags=["personas"])
-def obtener_persona (persona_id: str):
-    item = coleccion.find_one({"id": persona_id})
-    if item:
-        return item
-    else:
-        raise HTTPException(status_code=404, detail="Persona no encontrada")
-    
+def obtener_persona (persona_id: int):
+    for persona in personaList:
+        if persona.id == persona_id:
+            return persona
+    raise HTTPException(status_code=404, detail="Persona no encontrada")
 
 @app.delete("/personas/{persona_id}", tags=["personas"])
-def eliminar_persona (persona_id: str):    
-    result = coleccion.delete_one({"id": persona_id})
-    if result.deleted_count == 1:
+def eliminar_persona (persona_id: int):
+    persona = next((p for p in personaList if p.id == persona_id), None)
+    if persona:
+        personaList.remove(persona)
         return {"mensaje": "Persona eliminada exitosamente"}
     else:
         raise HTTPException(status_code=404, detail="Persona no encontrada")
 
-@app.get("/pista/{pista_id}", tags = ["canciones"])
+@app.get("/pista/{pista_id}")
 async def obtener_pista(pista_id: str):
     track = sp.track(pista_id)
     return track
     
-@app.get("/artistas/{artista_id}", tags = ["canciones"])
+@app.get("/artistas/{artista_id}")
 async def get_artista(artista_id: str):
     artista = sp.artist(artista_id)
     return artista
