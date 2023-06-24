@@ -33,7 +33,11 @@ tags_metadata = [
     {
         "name":"personas",
         "description": "Permite realizar un crud completo de una persona (listar)"
-    }
+    },
+    {
+        "name":"artistas",
+        "description": "Permite realizar un crud completo de un artista"
+    },
 ]
 
 app = FastAPI(
@@ -92,20 +96,19 @@ def obtener_persona (persona_id: int):
     raise HTTPException(status_code=404, detail="Persona no encontrada")
 
 @app.delete("/personas/{persona_id}", tags=["personas"])
-def eliminar_persona (persona_id: int):
-    persona = next((p for p in personaList if p.id == persona_id), None)
-    if persona:
-        personaList.remove(persona)
+def eliminar_persona (persona_id: str):
+    result = coleccion.delete_one({"id": persona_id})
+    if result.deleted_count == 1:
         return {"mensaje": "Persona eliminada exitosamente"}
     else:
         raise HTTPException(status_code=404, detail="Persona no encontrada")
 
-@app.get("/pista/{pista_id}")
+@app.get("/pista/{pista_id}", tags = ["artistas"])
 async def obtener_pista(pista_id: str):
     track = sp.track(pista_id)
     return track
     
-@app.get("/artistas/{artista_id}")
+@app.get("/artistas/{artista_id}", tags = ["artistas"])
 async def get_artista(artista_id: str):
     artista = sp.artist(artista_id)
     return artista
