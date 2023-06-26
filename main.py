@@ -1,9 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 
 from fastapi_versioning import VersionedFastAPI, version
+
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+
+from auth import authenticate
 
 #seccion mongo importar libreria
 import pymongo
@@ -59,6 +63,9 @@ app = FastAPI(
     openapi_tags = tags_metadata
 )
 
+#para agregar seguridad a nuestro api
+security = HTTPBasic()
+
 #configuracion de mongo
 cliente = pymongo.MongoClient("mongodb+srv://utplinteroperabilidad:0b1Fd3PFZZInSuZK@cluster0.susnphb.mongodb.net/?retryWrites=true&w=majority")
 database = cliente["directorio"]
@@ -101,7 +108,8 @@ async def crear_personav2(personE: PersonaEntradaV2):
 
 @app.get("/personas", response_model=List[PersonaRepositorio], tags=["personas"])
 @version(1, 0)
-def get_personas():
+def get_personas(credentials: HTTPBasicCredentials = Depends(security)):
+    authenticate(credentials)
     items = list(coleccion.find())
     print (items)
     return items
