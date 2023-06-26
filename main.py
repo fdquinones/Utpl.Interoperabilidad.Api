@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 
+from fastapi_versioning import VersionedFastAPI, version
+
 #seccion mongo importar libreria
 import pymongo
 
@@ -66,6 +68,7 @@ class PersonaRepositorio (BaseModel):
     id: str
     nombre: str
     edad: int
+    identificacion: Optional[str] = None
     ciudad: Optional[str] = None
 
 class PersonaEntrada (BaseModel):
@@ -73,22 +76,38 @@ class PersonaEntrada (BaseModel):
     edad:int
     ciudad: Optional[str] = None
 
+class PersonaEntradaV2 (BaseModel):
+    nombre:str
+    edad:int
+    identificacion:str
+    ciudad: Optional[str] = None
+
 
 personaList = []
 
 @app.post("/personas", response_model=PersonaRepositorio, tags = ["personas"])
+@version(1, 0)
 async def crear_persona(personE: PersonaEntrada):
     itemPersona = PersonaRepositorio (id= str(uuid.uuid4()), nombre = personE.nombre, edad = personE.edad, ciudad = personE.ciudad)
     resultadoDB =  coleccion.insert_one(itemPersona.dict())
     return itemPersona
 
+@app.post("/personas", response_model=PersonaRepositorio, tags = ["personas"])
+@version(2, 0)
+async def crear_personav2(personE: PersonaEntradaV2):
+    itemPersona = PersonaRepositorio (id= str(uuid.uuid4()), nombre = personE.nombre, edad = personE.edad, ciudad = personE.ciudad, identificacion = personE.identificacion)
+    resultadoDB =  coleccion.insert_one(itemPersona.dict())
+    return itemPersona
+
 @app.get("/personas", response_model=List[PersonaRepositorio], tags=["personas"])
+@version(1, 0)
 def get_personas():
     items = list(coleccion.find())
     print (items)
     return items
 
 @app.get("/personas/{persona_id}", response_model=PersonaRepositorio , tags=["personas"])
+@version(1, 0)
 def obtener_persona (persona_id: str):
     item = coleccion.find_one({"id": persona_id})
     if item:
@@ -97,6 +116,7 @@ def obtener_persona (persona_id: str):
         raise HTTPException(status_code=404, detail="Persona no encontrada")
 
 @app.delete("/personas/{persona_id}", tags=["personas"])
+@version(1, 0)
 def eliminar_persona (persona_id: str):
     result = coleccion.delete_one({"id": persona_id})
     if result.deleted_count == 1:
@@ -105,11 +125,13 @@ def eliminar_persona (persona_id: str):
         raise HTTPException(status_code=404, detail="Persona no encontrada")
 
 @app.get("/pista/{pista_id}", tags = ["artistas"])
+@version(1, 0)
 async def obtener_pista(pista_id: str):
     track = sp.track(pista_id)
     return track
     
 @app.get("/artistas/{artista_id}", tags = ["artistas"])
+@version(1, 0)
 async def get_artista(artista_id: str):
     artista = sp.artist(artista_id)
     return artista
@@ -118,3 +140,5 @@ async def get_artista(artista_id: str):
 @app.get("/")
 def read_root():
     return {"Hello": "Interoperabilidad 8"}
+
+app = VersionedFastAPI(app)
