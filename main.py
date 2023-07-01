@@ -1,9 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends 
 from pydantic import BaseModel
 from typing import List, Optional
-#Importar Mongo
+import uuid
 
+from fastapi_versioning import VersionedFastAPI, version
+
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+
+from auth import authenticate
+
+#seccion mongo importar libreria
 import pymongo
+
 import spotipy
 
 sp = spotipy.Spotify(auth_manager=spotipy.oauth2.SpotifyClientCredentials(
@@ -51,8 +59,12 @@ app = FastAPI(
     },
     openapi_tags = tags_metadata
 )
+
+#para agregar seguridad a nuestro api
+security = HTTPBasic()
+
 #configuración de mongo 
-producto = pymongo.Mongoproducto("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
+producto = pymongo.mongodb("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
 database = producto["biblioteca"]
 coleccion = database["productos"]
 
@@ -63,6 +75,7 @@ class ProductoRepositorio (BaseModel):
     detalle: Optional[str] = None
 
 class ProductoEntrada (BaseModel):
+    id: int
     nombre:str
     cantidad:int
     detalle: Optional[str] = None
@@ -75,46 +88,61 @@ class ProductoEntradaV2 (BaseModel):
 
 productoList = []
 
-@app.post("/productos", response_model=Producto)
-def crear_producto(product: Producto):
-    productoList.append(product)
-    return product
+@app.post("/productos", response_model=ProductoRepositorio,tags ["productos"])
+@version(1, 0)
+async def crear_producto(productoE: ProductoEntrada):
+    itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = detalleE.detalle)
+    resultadoDB =  coleccion.insert_one(itemProducto.dict())
+    return itemProducto
 
-@app.get("/productos", response_model=List[Producto])
-def get_productos():
-    return productoList
+@app.post("/productos", response_model=ProductoRepositorio, tags ["productos"])
+@version(2, 0)
+async def crear_producto2(productoE: ProductoEntradaV2):
+    itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = detalleE.detalle)
+    resultadoDB =  coleccion.insert_one(itemProducto.dict())
+    return itemProducto
 
-@app.get("/productos/{producto_id}", response_model=Producto)
-def obtener_producto (producto_id: int):
-    for producto in productoList:
-        if producto.id == producto_id:
-            return producto
-    raise HTTPException(status_code=404, detail="Producto no encontrada")
+@app.get("/productos", response_model=List[ProductoRepositorio], tags=["productos"])
+@version(1, 0)
+def get_productos(credentials: HTTPBasicCredentials = Depends(security)):
+    authenticate(credentials)
+    items = list(coleccion.find())
+    print (items)
+    return items
 
-@app.delete("/productos/{producto_id}")
-
-def eliminar_producto (producto_id: int):
-
-    producto = next((p for p in productoList if p.id == producto_id), None)
-
-    if producto:
-
-        productoList.remove(producto)
-
-        return {"mensaje": "Producto eliminado exitosamente"}
-
+@app.get("/productos/{producto_id}", response_model=ProductoRepositorio , tags=["productos"])
+@version(1, 0)
+def obtener_productos (producto_id: int)
+    items = coleccion.find_one({"id": producto_id})
+    if item:
+        return item
     else:
-
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-@app.get("/pista/{pista_id}")
+@app.delete("/productos/{producto_id}", tags=["productos"])
+@version(1, 0)
+def eliminar_producto (producto_id: int):
 
-async def obtener_pista(pista_id: str):
+    result = coleccion.delete_one({"id": producto_id})
+    if result.deleted_count == 1:
+        return {"mensaje": "Producto eliminado exitosamente"}
+    else:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
 
+@app.get("/pista/{pista_id}", tags = ["artistas"])
+@version(1, 0)
+async def obtener_track(pista_id: str):
     track = sp.track(pista_id)
-
     return track
+    
+@app.get("/artistas/{artista_id}", tags = ["artistas"])
+@version(1, 0)
+async def get_artista(artista_id: str):
+    artista = sp.artist(artista_id)
+    return artista
 
 @app.get("/")
 def read_root():
     return {"Bienvenido": "Usuario/NombreApellido1"}
+
+app = VersionedFastAPI(app)
