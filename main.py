@@ -1,18 +1,60 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
+#Importar Mongo
 
+import pymongo
 import spotipy
 
 sp = spotipy.Spotify(auth_manager=spotipy.oauth2.SpotifyClientCredentials(
-
     client_id='43db35ef5cb14129ae36b4eae0ce8b25 ',
-
-    client_secret='a755432558574a318edffb505e5969d8'
-
+    client_secret='a755432558574a318edffb505e5969d8',
 ))
 
-app = FastAPI()
+description = """
+Utpl tnteroperabilidad API ayuda a clasificar productos en una tienda. 🚀
+
+## Productos
+
+Tu puedes crear un producto.
+Tu puedes listar productos.
+## Artistas
+
+You will be able to:
+
+* **Crear artista** (_not implemented_).
+"""
+
+tags_metadata = [
+    {
+        "name":"productos",
+        "description": "Permite realizar un crud completo de un producto (listar)"
+    },
+    {
+        "name":"artistas",
+        "description": "Permite realizar un crud completo de un artista"
+    },
+]
+app = FastAPI(
+    title="Utpl Interoperabilidad Tarea",
+    description= description,
+    version="0.0.1",
+    terms_of_service="http://example.com/terms/",
+    contact={
+        "name": "Marlyn Troya",
+        "url": "http://x-force.example.com/contact/",
+        "email": "matroya7@utpl.edu.ec",
+    },
+    license_info={
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+    },
+    openapi_tags = tags_metadata
+)
+#configuración de mongo 
+producto = pymongo.MongoProducto("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
+database = producto["biblioteca"]
+coleccion = database["productos"]
 
 class Producto (BaseModel):
     id: int
