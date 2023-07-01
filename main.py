@@ -52,15 +52,26 @@ app = FastAPI(
     openapi_tags = tags_metadata
 )
 #configuración de mongo 
-producto = pymongo.MongoProducto("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
+producto = pymongo.Mongoproducto("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
 database = producto["biblioteca"]
 coleccion = database["productos"]
 
-class Producto (BaseModel):
+class ProductoRepositorio (BaseModel):
     id: int
     nombre: str
     cantidad: int
     detalle: Optional[str] = None
+
+class ProductoEntrada (BaseModel):
+    nombre:str
+    cantidad:int
+    detalle: Optional[str] = None
+
+class ProductoEntradaV2 (BaseModel):
+    nombre:str
+    cantidad:int
+    detalle:[str]
+    codigobarra: Optional[str] = None
 
 productoList = []
 
