@@ -143,6 +143,6 @@ async def get_artista(artista_id: str):
 
 @app.get("/")
 def read_root():
-    return {"Bienvenido": "Usuario/NombreApellido1"}
+    return {"Bienvenido": "Usuario/NombreApellido2"}
 
 app = VersionedFastAPI(app)
