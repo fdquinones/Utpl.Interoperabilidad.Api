@@ -108,7 +108,7 @@ async def crear_personav2(personE: PersonaEntradaV2):
 
 @app.get("/personas", response_model=List[PersonaRepositorio], tags=["personas"])
 @version(1, 0)
-def get_personas(credentials: HTTPBasicCredentials = Depends(security)):
+def get_personas():
     authenticate(credentials)
     items = list(coleccion.find())
     print (items)
