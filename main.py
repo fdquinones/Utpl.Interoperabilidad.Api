@@ -91,7 +91,7 @@ productoList = []
 @app.post("/productos", response_model=ProductoRepositorio,tags=["productos"])
 @version(1, 0)
 async def crear_producto(productoE: ProductoEntrada):
-    itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = detalleE.detalle)
+    itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = productoE.detalle)
     resultadoDB =  coleccion.insert_one(itemProducto.dict())
     return itemProducto
 
@@ -106,9 +106,9 @@ async def crear_producto2(productoE: ProductoEntradaV2):
 @version(1, 0)
 def get_productos(credentials: HTTPBasicCredentials = Depends(security)):
     authenticate(credentials)
-    items = list(coleccion.find())
-    print (items)
-    return items
+    item = list(coleccion.find())
+    print (item)
+    return item
 
 @app.get("/productos/{producto_id}", response_model=ProductoRepositorio , tags=["productos"])
 @version(1, 0)
