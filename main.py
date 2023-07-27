@@ -64,18 +64,18 @@ app = FastAPI(
 security = HTTPBasic()
 
 #configuración de mongo 
-producto = pymongo.MongoClient("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
+producto = pymongo.MongoClient("mongodb+srv://utplapi:123456marlyn.@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
 database = producto["biblioteca"]
 coleccion = database["productos"]
 
 class ProductoRepositorio (BaseModel):
-    id: int
+    id: str
     nombre: str
     cantidad: int
     detalle: Optional[str] = None
 
 class ProductoEntrada (BaseModel):
-    id: int
+    id: str
     nombre:str
     cantidad:int
     detalle: Optional[str] = None
@@ -94,10 +94,11 @@ async def crear_producto(productoE: ProductoEntrada):
     itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = detalleE.detalle)
     resultadoDB =  coleccion.insert_one(itemProducto.dict())
     return itemProducto
+
 @app.post("/productos", response_model=ProductoRepositorio, tags=["productos"])
 @version(2, 0)
 async def crear_producto2(productoE: ProductoEntradaV2):
-    itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = detalleE.detalle)
+    itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = productoE.detalle)
     resultadoDB =  coleccion.insert_one(itemProducto.dict())
     return itemProducto
 
@@ -112,7 +113,7 @@ def get_productos(credentials: HTTPBasicCredentials = Depends(security)):
 @app.get("/productos/{producto_id}", response_model=ProductoRepositorio , tags=["productos"])
 @version(1, 0)
 def obtener_productos (producto_id: str):
-    items = coleccion.find_one({"id": producto_id})
+    item = coleccion.find_one({"id": producto_id})
     if item:
         return item
     else:
@@ -120,7 +121,7 @@ def obtener_productos (producto_id: str):
 
 @app.delete("/productos/{producto_id}", tags=["productos"])
 @version(1, 0)
-def eliminar_producto (producto_id: int):
+def eliminar_producto (producto_id: str):
 
     result = coleccion.delete_one({"id": producto_id})
     if result.deleted_count == 1:
