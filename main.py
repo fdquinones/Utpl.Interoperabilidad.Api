@@ -64,7 +64,7 @@ app = FastAPI(
 security = HTTPBasic()
 
 #configuración de mongo 
-producto = pymongo.mongodb("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
+producto = pymongo.MongoClient("mongodb+srv://MarTroya:123456marlyn>@cluster0.jtcw0qx.mongodb.net/?retryWrites=true&w=majority")
 database = producto["biblioteca"]
 coleccion = database["productos"]
 
@@ -83,19 +83,18 @@ class ProductoEntrada (BaseModel):
 class ProductoEntradaV2 (BaseModel):
     nombre:str
     cantidad:int
-    detalle:[str]
+    detalle: str
     codigobarra: Optional[str] = None
 
 productoList = []
 
-@app.post("/productos", response_model=ProductoRepositorio,tags ["productos"])
+@app.post("/productos", response_model=ProductoRepositorio,tags=["productos"])
 @version(1, 0)
 async def crear_producto(productoE: ProductoEntrada):
     itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = detalleE.detalle)
     resultadoDB =  coleccion.insert_one(itemProducto.dict())
     return itemProducto
-
-@app.post("/productos", response_model=ProductoRepositorio, tags ["productos"])
+@app.post("/productos", response_model=ProductoRepositorio, tags=["productos"])
 @version(2, 0)
 async def crear_producto2(productoE: ProductoEntradaV2):
     itemProducto = ProductoRepositorio (id= str(uuid.uuid4()), nombre = productoE.nombre, cantidad = productoE.cantidad, detalle = detalleE.detalle)
@@ -112,7 +111,7 @@ def get_productos(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.get("/productos/{producto_id}", response_model=ProductoRepositorio , tags=["productos"])
 @version(1, 0)
-def obtener_productos (producto_id: int)
+def obtener_productos (producto_id: str):
     items = coleccion.find_one({"id": producto_id})
     if item:
         return item
